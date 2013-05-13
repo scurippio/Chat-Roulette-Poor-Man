@@ -1,1 +1,1 @@
-A "Fully" Chat Roulette solution for Poor Man , Server side is build with node.js and socket.io
+A "Fully" Chat Roulette solution for Poor Man , Server side is build with node.js and socket.io and Client side use the webRTC features
