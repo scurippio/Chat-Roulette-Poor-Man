@@ -141,9 +141,11 @@ Rulette.prototype.recOffer = function(data) {
 
 Rulette.prototype.recIce = function (data) {
 	debug('--- Set ICE server candidate');
-	debug(data);
+	//debug(data);
+	if (data.candidate === null) {debug('no-candidate'); return; }
 	try {
-		client.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+		var oDioPorco = new RTCIceCandidate({ sdpMLineIndex: data.candidate.sdpMLineIndex, candidate: data.candidate.candidate });
+		client.pc.addIceCandidate(oDioPorco);
 	} catch(e){
 		debug(e);
 		debug('DIO MA CANE DI DIO!- candidate stronzate exeption di fisso')
