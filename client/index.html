@@ -1,0 +1,32 @@
+<html>
+	<head>
+		<title>Chat Roulette Poor man </title>
+		<script type="text/javascript" src="socket.io.js"></script>
+		<script type="text/javascript" src="rulette.js"></script>
+		<script type="text/javascript" src="nostyle.css"></script>
+	</head>
+	<body>
+			<h1>Chat Roulette Poor Man</h1>
+			<hr/>
+			<div class="statusbox">
+				Network Status (server): <span id="statusbox" ></span>
+			<div>
+			<div class="warn" id="warnbox">
+				Devi accettare la webcam segaiolo <b>segaiolo!</b>
+			</div>
+			<div id="nickbox" style="display:none;">
+				Nickname <input value="Managgia" type="text" id="nickbox-nickname" name="nickname" >
+				<button onclick="client.joinRulette()">Join the Rulette</button>
+			</div>				
+			<button id="ruletta" style="display:none;" onclick="client.socket.emit('ruletta');">Ruletta</button>
+			<div id="ruletteBox">
+				<video  style="display:none;float:left;" id="remotevideo" autoplay></video>
+			</div>
+			<div style="clear:both"></div>
+			<hr/>
+			<div class="footer">
+				- Poor Man, Poor Developing, Poor Graphics, Poor Layout, Poor Coding, Poor Testing - hosted by http://Tracciabi.li
+			</div>
+		
+	</body>
+</html>
