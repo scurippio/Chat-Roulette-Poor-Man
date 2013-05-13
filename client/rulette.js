@@ -42,6 +42,10 @@ function Rulette(){
 	this.localstream;this.pc;this.remotestream;
 }
 
+Rulette.prototype.validateInput = function (str){
+     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 Rulette.prototype.onConnect = function () {
 	
 	debug('-Ti sei connesso OK) bravo coglione!');
@@ -64,7 +68,7 @@ Rulette.prototype.onUser = function (data) {
 	debug('- onUser called) ');
 	debug('- recived data:', data);
 	//CONTROLLARE INPUT VALIDARLO MADONNAROIA
-	client.setStatusBox('ATTENDI '+client.nickname+'... , Sei connesso con: <b>'+data.nickname+'</b>');
+	client.setStatusBox('ATTENDI '+client.nickname+'... , Sei connesso con: <b>'+client.validateInput(data.nickname)+'</b>');
 	client.createPeer();
 }
 
@@ -299,7 +303,7 @@ Rulette.prototype.joinRulette = function () {
 
 	try {
 
-		this.nickname = (document.getElementsByName('nickname')[0].value.length > 0 ? document.getElementsByName('nickname')[0].value : client.nickname);	
+		this.nickname = this.validateInput((document.getElementsByName('nickname')[0].value.length > 0 ? document.getElementsByName('nickname')[0].value : client.nickname));	
 		//connessione al webfrocet!
 		debug(this.nickname);
 		document.getElementById(this.idNickBox).style.display = 'none';
