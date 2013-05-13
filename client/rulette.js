@@ -83,8 +83,8 @@ Rulette.prototype.onIceCandidate = function (data) {
 
 Rulette.prototype.createPeer = function() {
 	try{
-		if (typeof client.pc == 'function'){
-			client.pc.close();
+		if (typeof client.pc == 'object'){
+			try { client.pc.close(); } catch(e) {}
 		}
 		if (typeof RTCPeerConnection == 'function') {
 			client.pc = new RTCPeerConnection(client.pc_config);
@@ -159,6 +159,9 @@ Rulette.prototype.callUser = function (data) {
 
 Rulette.prototype.onWait = function (data) {
 	client.setStatusBox(client.nickname+') ---- Wating nuovo ricchione disponibile --------');
+	if (typeof client.pc == 'object'){
+		try { client.pc.close(); } catch(e) {}
+	}
 	var remoteCam = document.getElementById("remotevideo");
 	remoteCam.style.display = 'none';
 }
@@ -295,8 +298,8 @@ Rulette.prototype.checkBrowser = function (){
 Rulette.prototype.joinRulette = function () {
 
 	try {
-		this.nickname = (document.getElementsByName('nickname')[0].value.length > 0 ? document.getElementsByName('nickname')[0].value : client.nickname);
-		
+
+		this.nickname = (document.getElementsByName('nickname')[0].value.length > 0 ? document.getElementsByName('nickname')[0].value : client.nickname);	
 		//connessione al webfrocet!
 		debug(this.nickname);
 		document.getElementById(this.idNickBox).style.display = 'none';
@@ -306,6 +309,12 @@ Rulette.prototype.joinRulette = function () {
 	}
 
 }
+
+Rulette.prototype.ruletta = function () {
+
+	client.socket.emit('ruletta');
+}
+
 
 function debug(arg) {
 	if (!debugMode) { return false; }
