@@ -32,6 +32,7 @@ var client;
 
 function Rulette(){
 	this.socket;
+	this.socketURL = 'http://tracciabi.li:1240';
 	this.media = {"audio": true, "video": {"mandatory": {}, "optional": []}};
 	this.idStatusBox = 'statusbox';
 	this.nickname = 'Spippotato';
@@ -231,7 +232,7 @@ Rulette.prototype.onMediaFailure = function (err) {
 
 Rulette.prototype.connect = function(){
 	try {
-		this.socket = io.connect('http://tracciabi.li:1240');
+		this.socket = io.connect(this.socketURL);
 		//Merdler.io
 		this.socket.on('connecting',this.onConnection);
 		this.socket.on('connect',this.onConnect);
