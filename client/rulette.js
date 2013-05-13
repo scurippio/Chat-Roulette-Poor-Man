@@ -31,8 +31,9 @@ var client;
 */
 
 function Rulette(){
+	this.namespace = '/chatroulette';
 	this.socket;
-	this.socketURL = 'http://tracciabi.li:1240';
+	this.socketURL = 'http://tracciabi.li:1240'+this.namespace;
 	this.media = {"audio": true, "video": {"mandatory": {}, "optional": []}};
 	this.idStatusBox = 'statusbox';
 	this.nickname = 'Spippotato';

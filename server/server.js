@@ -19,7 +19,7 @@ EndDate: undefined
 
 */
 
-
+var namespace = '/chatroulette';
 
 /*
 	Puo' finire in 2 modi o lo trova! opppure lo mette nella stanza 
@@ -28,15 +28,15 @@ function searchPartner(socket) {
 	//socket.randomClient = '';
 	console.log('- Search partner for:',socket.id,socket.nickname);
 	console.log('clients in hell room');
-	if ( io.sockets.clients('hell').length == 0 ) {
+	if ( io.of(namespace).clients('hell').length == 0 ) {
 		console.log('- Non ci sono puzzoni devi aspettare.... ');
 		socket.join('hell');
 		socket.emit('onWait',{data: 'suca'});
 	} else {
-		console.log('- Trovati ricchioni in attesa.... ',io.sockets.clients('hell'));
-		console.log('- Selezionato ricchione: ',io.sockets.clients('hell')[0].nickname);
+		console.log('- Trovati ricchioni in attesa.... ',io.of(namespace).clients('hell'));
+		console.log('- Selezionato ricchione: ',io.of(namespace).clients('hell')[0].nickname);
 		//rimuovo il client dalla stanza
-		var amigo = io.sockets.clients('hell')[0];
+		var amigo = io.of(namespace).clients('hell')[0];
 		if (amigo.id == socket.randomClient){
 			console.log('- '+socket.nickname+' è Appena stato con questo attende va..');
 			socket.join('hell');
@@ -69,7 +69,7 @@ try {
 }
 console.log('Server Partito dioschifoso');
 
-io.sockets.on('connection', function (socket) {
+io.of(namespace).on('connection', function (socket) {
 
 		console.log('Un ricchine connesso');
 		socket.randomClient = '';
@@ -84,32 +84,32 @@ io.sockets.on('connection', function (socket) {
 	
 	socket.on('ruletta', function() {
 		//se il ricchione è gia in attesa si deve ciucciare il cazzo
-		if (io.sockets.manager.roomClients[socket.id]['/hell']){
+		if (io.of(namespace).manager.roomClients[socket.id]['/hell']){
 			console.log('Sta gia in attesa il frocione',socket.nickname);
 			return;
 		}
 		if (socket.randomClient.length > 0){
-			searchPartner(io.sockets.socket(socket.randomClient));
+			searchPartner(io.of(namespace).socket(socket.randomClient));
 		}
-		console.log('in da hell: ',io.sockets.clients('hell').length);
+		console.log('in da hell: ',io.of(namespace).clients('hell').length);
 		searchPartner(socket);
 	});	
 	//console.log('Utenti totali connessi',io.sockets.clients());
 	socket.on('onAnswer',function(data){
 		console.log('--- Arriva la risposta da dare al frociazzio sdp culo--');
-		var amigofrogio = io.sockets.socket(socket.randomClient);
+		var amigofrogio = io.of(namespace).socket(socket.randomClient);
 		amigofrogio.json.emit('recAnswer',data);
 	});
 	
 	socket.on('onOffer', function(data) {
 		console.log('-- il client accetta la offer e la manda');
-		var amigofrogio = io.sockets.socket(socket.randomClient);
+		var amigofrogio = io.of(namespace).socket(socket.randomClient);
 		amigofrogio.json.emit('recOffer',data);
 	});
 	
 	socket.on('onIceCandidate', function(data){
 		console.log('-- mando il candifrocIce');
-		var amigofrogio = io.sockets.socket(socket.randomClient);
+		var amigofrogio = io.of(namespace).socket(socket.randomClient);
 		amigofrogio.json.emit('recIce',data);
 	});
 	
@@ -117,8 +117,8 @@ io.sockets.on('connection', function (socket) {
 		console.log('DISCONNECT EVENT', socket.nickname,socket.randomClient.length);
 		if (socket.randomClient.length > 0){
 			console.log('- Mando segnale di ricerca al partner abbandonato.');
-			console.log(io.sockets.socket(socket.randomClient));
-			searchPartner(io.sockets.socket(socket.randomClient));
+			console.log(io.of(namespace).socket(socket.randomClient));
+			searchPartner(io.of(namespace).socket(socket.randomClient));
 		}
 	//	console.log(socket.broadcast.emit('userDisconnect', {client: socket.id}));
 	//	console.log('--------SOCKET STRUCTURE AFTER DISCONNECT -------');			
