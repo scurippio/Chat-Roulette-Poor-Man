@@ -74,17 +74,19 @@ io.of(namespace).on('connection', function (socket) {
 		console.log('Un ricchine connesso');
 		socket.randomClient = '';
 		socket.nickname = '';
+		socket.canrulet = 1;
 		socket.on('joinRulette', function (data) {
-		console.log('Ricevuto',data);
-		socket.nickname = data.nickname.length == 0 ? 'Spippottato' : data.nickname;
-		console.log(socket.nickname);
-		searchPartner(socket);
+			console.log('Ricevuto',data);
+			socket.nickname = data.nickname.length == 0 ? 'Spippottato' : data.nickname;
+			console.log(socket.nickname);
+			searchPartner(socket);
 		
-	});
+		});
 	
 	socket.on('ruletta', function() {
 		//se il ricchione è gia in attesa si deve ciucciare il cazzo
-		if (io.of(namespace).manager.roomClients[socket.id]['/hell']){
+		var rom = io.of(namespace).manager.roomClients[socket.id][namespace+'/hell'];
+		if (typeof rom != 'undefined' || !socket.canrulet || rom){
 			console.log('Sta gia in attesa il frocione',socket.nickname);
 			return;
 		}
