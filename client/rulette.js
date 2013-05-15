@@ -32,7 +32,7 @@ var client;
 
 function Rulette(){
 	this.namespace = '/chatroulette';
-	this.socket;
+	this.socket;this.iceReady = 0;
 	this.socketURL = 'http://tracciabi.li:1240'+this.namespace;
 	this.media = {"audio": true, "video": {"mandatory": {}, "optional": []}};
 	this.idStatusBox = 'statusbox';
@@ -71,7 +71,7 @@ Rulette.prototype.onUser = function (data) {
 	debug('- recived data:', data);
 	//CONTROLLARE INPUT VALIDARLO MADONNAROIA
 	client.setStatusBox('ATTENDI '+client.nickname+'... , Sei connesso con: <b>'+client.validateInput(data.nickname)+'</b>');
-	client.createPeer();
+
 }
 
 Rulette.prototype.onRemoteStream = function (data) {
@@ -88,6 +88,7 @@ Rulette.prototype.onIceCandidate = function (data) {
 }
 
 Rulette.prototype.createPeer = function() {
+	client.iceReady = 0;
 	try{
 		if (typeof client.pc == 'object'){
 			try { client.pc.close(); } catch(e) {}
@@ -126,21 +127,25 @@ Rulette.prototype.makeAnswer = function (desc) {
 	debug('MAKE ANSWER DIO-CANE');debug(desc);
 	client.pc.setLocalDescription(desc);
 	client.socket.emit('onAnswer',desc);
+	client.iceReady = 1;
 }
 
 Rulette.prototype.recAnswer = function (data) {
 	debug('-- Answere recived handshapordio finito!');
+	client.iceReady = 1;
 	debug(data);
-	client.pc.setRemoteDescription(new RTCSessionDescription(data));
+	client.pc.setRemoteDescription(new SessionDescription(data));
 }
 
 Rulette.prototype.recOffer = function(data) {
 	debug('-- Offer recived rispondo subito diocane');
-	client.pc.setRemoteDescription(new RTCSessionDescription(data));
-	client.pc.createAnswer(client.makeAnswer);
+	client.createPeer();
+	client.pc.setRemoteDescription(new SessionDescription(data));
+	client.pc.createAnswer(client.makeAnswer,function(e){ debug('error'); debug(e); },{mandatory:{OfferToReceiveAudio:true,OfferToReceiveVideo:true}});
 }
 
 Rulette.prototype.recIce = function (data) {
+	if (!client.iceReady) { debug('--- NON PRONTO PER RICEVERE IL CANDIDATO --- ');return; }
 	debug('--- Set ICE server candidate');
 	//debug(data);
 	if (data.candidate === null) {debug('no-candidate'); return; }
@@ -159,7 +164,7 @@ Rulette.prototype.callUser = function (data) {
 	//ora devi chiamare cazzaro
 	if (client.createPeer()){
 		debug('- Peer object Creation OK! )');
-		client.pc.createOffer(client.makeOffer);	
+		client.pc.createOffer(client.makeOffer,function(e){ debug('error'); debug(e); },{mandatory:{OfferToReceiveAudio:true,OfferToReceiveVideo:true}});	
 	}else{
 		debug('Peer object creation filed');	
 	}
@@ -282,6 +287,9 @@ Rulette.prototype.checkBrowser = function (){
 		}
 		// window.URL
 		window.URL = window.URL || window.webkitURL;
+		// Session Descriptor
+		SessionDescription = RTCSessionDescription || mozRTCSessionDescription;
+		
 		debug('--Checking P2P Feature--');		
 		if (typeof RTCPeerConnection == 'function') {
 			debug('- Standard mode OK)');
@@ -344,7 +352,9 @@ window.onload = function(){
 	}
 	//get user media 
 	client.getUserMedia();
-	//client.connect();		
+	//client.connect();	
+	//mostro ildioporco nickname
+	//client.showNickbox();	
 }
 
 
