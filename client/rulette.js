@@ -30,18 +30,35 @@ var client;
 	Application class
 */
 
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+if (typeof navigator.getUserMedia != 'function') {
+        debug('- Nessun UserMerdia trovato. Porco-dio. scarica chrome diocane!');
+}else{
+	 debug('- UserMedia OK) ');
+}
+// window.URL
+window.URL = window.URL || window.webkitURL;
+// Session Descriptor
+try {
+	SessionDescription = RTCSessionDescription || mozRTCSessionDescription;
+} catch(e) {
+	debug('Porcodio mozzilla fanculo');
+	SessionDescription = mozRTCSessionDescription;
+}
+
 function Rulette(){
 	this.namespace = '/chatroulette';
 	this.socket;this.iceReady = 0;
 	this.socketURL = 'http://tracciabi.li:1240'+this.namespace;
-	this.media = {"audio": true, "video": {"mandatory": {}, "optional": []}};
+	this.media = {"audio": true, "video": {"mandatory": {}, "optional": [{RtpDataChannels: true}]}};
 	this.idStatusBox = 'statusbox';
 	this.nickname = 'Spippotato';
 	this.idNickBox = 'nickbox';
 	this.idWarnBox = 'warnbox';
 	this.idRuletteBox = 'ruletteBox';
 	this.pc_config = {"iceServers":[{"url":"stun:23.21.150.121"}]};
-	this.localstream;this.pc;this.remotestream;
+	this.localstream;this.pc;this.remotestream;this.sendChannel;
 }
 
 Rulette.prototype.validateInput = function (str){
@@ -79,8 +96,10 @@ Rulette.prototype.onRemoteStream = function (data) {
 	debug(data);
 	var remoteCam = document.getElementById("remotevideo");
 	remoteCam.style.display = 'block';
+	remoteCam.style.height = '43%';
   	remoteCam.autoplay = true;
 	remoteCam.src = window.URL ? window.URL.createObjectURL(data.stream) : data.stream;
+	document.querySelector('input#toSend').disabled = false;
 }
 
 Rulette.prototype.onIceCandidate = function (data) {
@@ -104,18 +123,48 @@ Rulette.prototype.createPeer = function() {
 		client.pc.onicecandidate = this.onIceCandidate;
 		client.pc.onconnection = function(){};
 		client.pc.onaddstream = this.onRemoteStream;
-		client.pc.onremovestream = function(){};
+		client.pc.onremovestream = function(){
+			document.getElementById('toSend').disabled = 'disabled';
+		};
 		client.pc.ondatachannel = function(){};
-		client.pc.ongatheringchange = function(){};
+		//client.pc.ongatheringchange = function(){};
 		client.pc.onstatechange = function(){};
-		client.pc.onicechange = function(){};
+		//client.pc.onicechange = function(){};
 		client.pc.onnegotiationneeded = function(){};
 		//attacco lo stream locale porco-dio-canaglia.
 		client.pc.addStream(client.localstream);
+		client.pc.ondatachannel = this.onDataChannel;
+		this.sendChannel = client.pc.createDataChannel('FagChan',{reliable: false});
+		this.sendChannel.onmessage = this.onChannelMessage;
 		return true;
 	}catch(e){ debug(e);return false; }
 }
 /* SDP MERDAFUNCTION */
+Rulette.prototype.onChannelMessage = function (event){
+	try {
+		console.log(event,event.data,event.data.length);
+		var chatbox = document.getElementById('chatfag');	
+		if (event.data.toString() == 'FagChan') {
+			chatbox.value = '---- CHAT CONNECTED WITH OTHER RICCHIONE ----'+"\n";
+		}else{	
+			chatbox.value = chatbox.value+"\n"+'Friend: '+event.data;
+		}
+	}catch(e){
+		console.log(e);
+	}
+}
+Rulette.prototype.onDataChannel = function (event) {
+	rchan = event.channel;
+	console.log('event',event,event.channel);
+	rchan.onmessage = client.onChannelMessage;
+}
+Rulette.prototype.sendMsg = function () {
+	var text = document.getElementById('toSend').value;
+	var chatbox = document.getElementById('chatfag');
+	chatbox.value = chatbox.value+"\n"+'You: '+text;
+	this.sendChannel.send(text);
+	document.getElementById('toSend').value = '';
+}
 
 Rulette.prototype.makeOffer = function (desc) {
 	debug('MAKE OFFER PORCO-DIO');debug(desc);
@@ -150,10 +199,11 @@ Rulette.prototype.recIce = function (data) {
 	//debug(data);
 	if (data.candidate === null) {debug('no-candidate'); return; }
 	try {
+		var RTCIceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate || window.RTCIceCandidate;
 		var oDioPorco = new RTCIceCandidate({ sdpMLineIndex: data.candidate.sdpMLineIndex, candidate: data.candidate.candidate });
 		client.pc.addIceCandidate(oDioPorco);
 	} catch(e){
-		debug(e);
+		console.log(e);
 		debug('DIO MA CANE DI DIO!- candidate stronzate exeption di fisso')
 	}
 }
@@ -177,6 +227,8 @@ Rulette.prototype.onWait = function (data) {
 	}
 	var remoteCam = document.getElementById("remotevideo");
 	remoteCam.style.display = 'none';
+	document.getElementById('chatfag').value = '';
+	document.getElementById('toSend').disabled = "disabled";
 }
 
 Rulette.prototype.onConnectError = function(){
@@ -201,7 +253,7 @@ Rulette.prototype.showNickbox = function () {
 	try {
 		document.getElementById(this.idNickBox).style.display = 'block';
 		document.getElementById(this.idWarnBox).style.display = 'none';
-		
+		this.joinRulette();
 		this.setStatusBox(' Devi scrivere il tuo nome da ricchionazza e premere JOINT PORCCODDIO ');
 		
 	} catch (e) {
@@ -227,6 +279,9 @@ Rulette.prototype.onMediaSuccess = function (localStream) {
  	var myvideo = document.createElement("video");
   	myvideo.autoplay = true;
   	myvideo.setAttribute("id",'mycam');
+	myvideo.muted = 'muted';
+	myvideo.style.height = '43%';
+	myvideo.setAttribute('muted',true);
 	myvideo.src = window.URL ? window.URL.createObjectURL(localStream) : localStream;
 	document.getElementById(client.idRuletteBox).appendChild(myvideo);
 	//mostro ildioporco nickname
@@ -327,10 +382,17 @@ Rulette.prototype.joinRulette = function () {
 }
 
 Rulette.prototype.ruletta = function () {
+	document.querySelector('input#toSend').disabled = true;
 
 	client.socket.emit('ruletta');
 }
 
+Rulette.prototype.fsendMsg = function () {
+	console.log(e);
+	if(e.keyCode == 13) {
+		this.sendMsg();
+	}
+}
 
 function debug(arg) {
 	if (!debugMode) { return false; }
@@ -355,7 +417,10 @@ window.onload = function(){
 	//client.connect();	
 	//mostro ildioporco nickname
 	//client.showNickbox();	
+	
 }
-
-
-
+function diop (e) {
+	if (e.keyCode == 13) {
+		client.sendMsg();
+	}
+}
